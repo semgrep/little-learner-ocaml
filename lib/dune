@@ -1,0 +1,13 @@
+(library
+ (name little_lib)
+ (wrapped false)
+ (libraries
+ )
+ (preprocess
+   (pps
+     profiling.ppx ; also in semgrep
+     ppx_deriving.show
+     ppx_deriving.eq
+   )
+ )
+)

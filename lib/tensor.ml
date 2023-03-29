@@ -1,10 +1,8 @@
-(* update: now in tensor.ml *)
-
-type tensor =
+type t =
   (* scalar *)
   | S of float
   (* tensor *)
-  | T of tensor array
+  | T of t array
 
 let is_scalar = function
   | S _ -> true
@@ -20,34 +18,20 @@ let tref t n =
   | S _ -> failwith "tref: scalar tensor"
   | T ts -> ts.(n)
 
+(* not tail-rec *)
+(*
 let rec rank t =
   match t with
   | S _ -> 0
-  | T ts ->
+  | T _ts ->
      1 + rank (tref t 0)
-
-let ex_frame_26 =
-  T [| T [| T [|S 8.|]; T [|S 9.|] |];
-       T [| T [|S 4.|]; T [|S 7.|] |];
-    |]
-
-let res_frame_26 =
-  rank ex_frame_26
+ *)
 
 let rec shape t =
   match t with
   | S _ -> []
   | T _ ->
      tlen t :: shape (tref t 0)
-
-let ex_frame_41 =
-  T [|
-      T [| T [|S 5.0|]; T [|S 6.0|]; T [|S 8.0|]|];
-      T [| T [|S 7.0|]; T [|S 9.0|]; T [|S 4.0|]|];
-    |]
-let res_frame_41 =
-  shape ex_frame_41
-
 
 (* tail-rec *)
 let rec ranked t acc =
@@ -58,6 +42,3 @@ let rec ranked t acc =
 
 let rank t =
   ranked t 0
-
-let res_frame_44 =
-  rank ex_frame_26
