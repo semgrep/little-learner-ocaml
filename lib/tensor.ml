@@ -8,6 +8,10 @@ let is_scalar = function
   | S _ -> true
   | T _ -> false
 
+val scalar = function
+  | S x -> x
+  | T _ -> failwith "scalar: not a scalar"
+
 let tlen ts =
   match ts with
   | S _ -> failwith "tlen: scalar tensor"
