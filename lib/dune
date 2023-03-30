@@ -2,6 +2,7 @@
  (name little_lib)
  (wrapped false)
  (libraries
+   base ; Base.Array.concat_map
  )
  (preprocess
    (pps

@@ -1,6 +1,6 @@
-(* really a followup to interlude1.ml *)
+(* interlude5.ml, but really a followup to interlude1.ml *)
 
-(* TODO: move in tensor.ml *)
+(* update: now in tensor.ml *)
 
 let rec tmap f t =
   match t with
