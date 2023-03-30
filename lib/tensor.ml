@@ -177,7 +177,7 @@ let _zeroes =
 let _sum =
   ext1 sum_1 1
 
-let _sqrt =
+let sqrt =
   ext1 sqrt0 0
 
 let _flatten =
