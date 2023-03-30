@@ -48,4 +48,6 @@ let res_frame_42 =
 let res_frame_44 =
   let obj : objective_fn =
     l2_loss line line_xs line_ys in
-  obj
+  (obj [S (0.6263 +. 0.0099); S 0.]
+  -
+  obj [S (0.6263); S 0.]) / (S 0.0099)

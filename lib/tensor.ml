@@ -149,6 +149,11 @@ let mult0 t u =
   | S x, S y -> S (x *. y)
   | _ -> failwith "mult0: one of the argument is not a tensor0"
 
+let div0 t u =
+  match t, u with
+  | S x, S y -> S (x /. y)
+  | _ -> failwith "div0: one of the argument is not a tensor0"
+
 let sqrt0 = function
   | S f -> S (Float.sqrt f)
   | T _ -> failwith "sqrt0: not a scalar"
@@ -198,6 +203,9 @@ let (-) =
 
 let ( * ) =
   ext2 mult0 0 0
+
+let ( / ) =
+  ext2 div0 0 0
 
 let sqr t =
   t * t

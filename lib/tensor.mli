@@ -42,6 +42,8 @@ val ( - ): t -> t -> t
 
 val ( * ): t -> t -> t
 
+val ( / ): t -> t -> t
+
 val dotproduct: t -> t -> t
 
 val sqrt: t -> t
