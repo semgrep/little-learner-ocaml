@@ -9,9 +9,11 @@ type t =
 
 (* no dependent types in OCaml :( so have to use those aliases as a hack *)
 
-type t0 = t (* tensor^0 *)
+type t0 = t (* tensor^0, a.k.a a scalar *)
 type t1 = t (* tensor^1 *)
 type t2 = t (* tensor^2 *)
+
+type scalar = t0
 
 (*****************************************************************************)
 (* Accessors *)
@@ -137,6 +139,11 @@ let plus0 t u =
   | S x, S y -> S (x +. y)
   | _ -> failwith "plus0: one of the argument is not a tensor0"
 
+let minus0 t u =
+  match t, u with
+  | S x, S y -> S (x -. y)
+  | _ -> failwith "minus0: one of the argument is not a tensor0"
+
 let mult0 t u =
   match t, u with
   | S x, S y -> S (x *. y)
@@ -174,7 +181,7 @@ let flatten_2 t2 =
 let _zeroes =
   ext1 (fun _ -> S 0.) 0
 
-let _sum =
+let sum =
   ext1 sum_1 1
 
 let sqrt =
@@ -186,10 +193,13 @@ let _flatten =
 let (+) =
   ext2 plus0 0 0
 
+let (-) =
+  ext2 minus0 0 0
+
 let ( * ) =
   ext2 mult0 0 0
 
-let _sqr t =
+let sqr t =
   t * t
 
 let dotproduct_1_1 w t =
