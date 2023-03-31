@@ -47,7 +47,7 @@ let l2_loss target (* f *) =
   sum (sqr (ys - pred_ys))
 
 (*****************************************************************************)
-(* Gradient descent *)
+(* Gradient descent v1 *)
 (*****************************************************************************)
 
 (* TODO: define with better one using AutoGrad, see Appendix A *)
