@@ -60,4 +60,4 @@ val revise : (parameters -> parameters) -> int -> parameters -> parameters
 (* optimization by gradient descent, continue to revise the parameters.
  * Internally rely on !alpha, !revs (and gradient_pad)
  *)
-val gradient_descent : objective_fn -> parameters -> parameters
+val gradient_descent_v1 : objective_fn -> parameters -> parameters

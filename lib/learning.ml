@@ -95,7 +95,7 @@ let rec revise (f : parameters -> parameters) (revs : int) (theta : parameters) 
   then theta
   else revise f (Stdlib.(-) revs 1) (f theta)
 
-let gradient_descent (obj : objective_fn) (theta_init : parameters) : parameters =
+let gradient_descent_v1 (obj : objective_fn) (theta_init : parameters) : parameters =
   let f big_theta =
     List.map2
       (fun p g -> p - (S !alpha) * g)
