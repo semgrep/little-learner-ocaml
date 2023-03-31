@@ -45,7 +45,21 @@ let res_frame_37 =
   let obj = (sampling_obj (l2_loss line)
                line_xs line_ys) in
   with_hyper revs 1000 (fun () ->
-      with_hyper alpha 0.01 (fun () ->
+      with_hyper alpha 0.001 (fun () ->
+         with_hyper batch_size 4 (fun () ->
+             gradient_descent obj
+            [S 0.; S 0.])))
+
+(* with bad batch, the gradient_pad may be big and we might
+ * diverge too fast, so better put more revisions and
+ * a smaller alpha!
+ * Not NaN anymore, but still bad
+ *)
+let res_frame_37_for_gradient_pad =
+  let obj = (sampling_obj (l2_loss line)
+               line_xs line_ys) in
+  with_hyper revs 15000 (fun () ->
+      with_hyper alpha 0.00001 (fun () ->
          with_hyper batch_size 4 (fun () ->
              gradient_descent obj
             [S 0.; S 0.])))
