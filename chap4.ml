@@ -21,11 +21,11 @@ let gradient_pad (obj : objective_fn) (theta : parameters) : parameters =
     match theta_rest with
     | [] -> []
     | theta0::xs ->
-       let new_theta0 = theta0 + (S 0.0001) in
+       let new_theta0 = theta0 + (S 0.001) in
        let new_theta =
          List.rev theta_before @ [new_theta0] @ xs in
        let vnew = obj new_theta in
-       let grad_theta0 = (vnew - vold) / (S 0.0001) in
+       let grad_theta0 = (vnew - vold) / (S 0.001) in
        grad_theta0 :: aux (theta0::theta_before) xs
   in
   aux [] theta
