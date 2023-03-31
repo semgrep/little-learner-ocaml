@@ -8,7 +8,7 @@ open Tensor
  * often called 'theta' *)
 type parameters = t list
 
-(* e.g., line() *)
+(* e.g., line(), quad(), relu() *)
 type target_fn =
   t (* input, the "arguments" of the target_fn *) -> parameters -> t (* output *)
 
@@ -19,7 +19,29 @@ type objective_fn =
 type expectant_fn =
   t (* input dataset *) -> t (* predicted output dataset *) ->
   objective_fn
-  
+
+(*****************************************************************************)
+(* Target functions *)
+(*****************************************************************************)
+
+let lref xs n =
+  List.nth xs n
+
+(* y = f(x) = wx + b *)
+let line x = fun theta ->
+  x * (lref theta 0) + (lref theta 1)
+
+(* f(x) = ax^2 + bx + c *)
+let quad t = fun theta ->
+  sqr t * (lref theta 0) +
+    t * (lref theta 1) +
+    (lref theta 2)
+
+(* f(x) = a o x + b (o = dotproduct) *)
+let plane t = fun theta ->
+  dotproduct (lref theta 0) t +
+    (lref theta 1)
+
 (*****************************************************************************)
 (* Hyperparameters *)
 (*****************************************************************************)
@@ -72,7 +94,6 @@ let rec revise (f : parameters -> parameters) (revs : int) (theta : parameters) 
   if revs = 0
   then theta
   else revise f (Stdlib.(-) revs 1) (f theta)
-
 
 let gradient_descent (obj : objective_fn) (theta_init : parameters) : parameters =
   let f big_theta =
