@@ -7,6 +7,7 @@ type t =
   | S of float
   (* tensor array *)
   | T of t array
+[@@deriving show]
 
 type t0 = t (* tensor^0 *)
 type t1 = t (* tensor^1 *)

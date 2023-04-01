@@ -3,6 +3,7 @@
  (wrapped false)
  (libraries
    base ; Base.Array.concat_map
+   commons
  )
  (preprocess
    (pps

@@ -6,6 +6,7 @@ type t =
   | S of float
   (* tensor *)
   | T of t array
+[@@deriving show]
 
 (* no dependent types in OCaml :( so have to use those aliases as a hack *)
 

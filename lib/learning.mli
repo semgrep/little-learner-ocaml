@@ -24,6 +24,8 @@ type expectant_fn =
   Tensor.t (* input dataset *) -> Tensor.t (* predicted output dataset *) ->
   objective_fn
 
+val debug: bool ref
+
 (*****************************************************************************)
 (* Target functions *)
 (*****************************************************************************)

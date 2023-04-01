@@ -1,4 +1,5 @@
 open Tensor
+open Common
 
 (*****************************************************************************)
 (* Types *)
@@ -19,6 +20,8 @@ type objective_fn =
 type expectant_fn =
   t (* input dataset *) -> t (* predicted output dataset *) ->
   objective_fn
+
+let debug = ref true
 
 (*****************************************************************************)
 (* Target functions *)
@@ -88,13 +91,15 @@ let gradient_pad (obj : objective_fn) (theta : parameters) : parameters =
          List.rev theta_before @ [new_theta0] @ xs in
        let vnew = obj new_theta in
        let grad_theta0 = (vnew - vold) / (S 0.0001) in
+       if !debug
+       then pr2 (spf "grad_theta0: %s" (Tensor.show grad_theta0));
        grad_theta0 :: aux (theta0::theta_before) xs
   in
   aux [] theta
 
 (* f = new theta compute = gradient *)
 let rec revise (f : parameters -> parameters) (revs : int) (theta : parameters) : parameters =
-  if revs = 0
+  if revs =|= 0
   then theta
   else revise f (Stdlib.(-) revs 1) (f theta)
 
@@ -114,7 +119,7 @@ let gradient_descent_v1 (obj : objective_fn) (theta_init : parameters) : paramet
 let init () = Random.self_init ()
 
 let rec sampled n i acc =
-  if i = 0
+  if i =|= 0
   then acc
   else sampled n (Stdlib.(-) i 1) ((Random.int n)::acc)
 
