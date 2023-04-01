@@ -5,6 +5,7 @@
 (* the stuff we want to learn, the "parameters" of a target_fn (e.g., line()),
  * often called 'theta' *)
 type parameters = Tensor.t list
+[@@deriving show]
 
 (* e.g., line(), quad() *)
 type target_fn =
@@ -49,6 +50,9 @@ val alpha: float ref
 (* revisions *)
 val revs: int ref
 
+(* samples size *)
+val batch_size : int ref
+
 val with_hyper : 'a ref -> 'a -> (unit -> 'b) -> 'b
                                                             
 (*****************************************************************************)
@@ -80,5 +84,8 @@ val gradient_descent_v1 : objective_fn -> parameters -> parameters
 
 (* initialize the random number generator with Random.self_init() *)
 val init: unit -> unit
+
+(* internal *)
+val samples: int -> int -> int list
 
 val sampling_obj : expectant_fn -> Tensor.t -> Tensor.t -> objective_fn

@@ -6,7 +6,7 @@ type t =
   | S of float
   (* tensor *)
   | T of t array
-[@@deriving show]
+[@@deriving show {with_path = false}]
 
 (* no dependent types in OCaml :( so have to use those aliases as a hack *)
 
@@ -39,6 +39,9 @@ let tref t n =
   match t with
   | S _ -> failwith "tref: scalar tensor"
   | T ts -> ts.(n)
+
+let trefs t xs =
+  xs |> List.map (fun i -> tref t i) |> Array.of_list |> (fun arr -> T arr)
 
 (*****************************************************************************)
 (* Shape/rank *)

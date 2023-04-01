@@ -30,6 +30,8 @@ val tlen: t -> int
 (* raise exn on scalar tensor *)
 val tref: t -> int -> t
 
+val trefs: t -> int list -> t
+
 val rank: t -> int
 
 val shape: t -> int list

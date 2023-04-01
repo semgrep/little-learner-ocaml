@@ -73,7 +73,7 @@ let res_frame_42 =
 
 let revs = ref 1000
 
-let gradient_descent (obj : objective_fn) (theta_init : parameters) : parameters =
+let gradient_descent_v1 (obj : objective_fn) (theta_init : parameters) : parameters =
   let f big_theta =
     List.map2
       (fun p g -> p - (S !alpha) * g)
@@ -83,5 +83,5 @@ let gradient_descent (obj : objective_fn) (theta_init : parameters) : parameters
   revise f !revs theta_init
 
 let res_frame_50 =
-  gradient_descent ((l2_loss line) line_xs line_ys)
+  gradient_descent_v1 ((l2_loss line) line_xs line_ys)
    [S 0.; S 0.]

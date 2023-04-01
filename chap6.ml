@@ -32,22 +32,31 @@ let sampling_obj (expectant : expectant_fn) (xs : t) (ys : t) : objective_fn =
   (fun theta ->
     (* we must generate samples inside the closure, otherwise
      * we would get the loss each time from the same batch
+     * TODO: the problem is that in gradient_pad(), we call the objective
+     * function [obj] a few times, and here we would call it each
+     * time with a different samples, which can't work! We must
+     * call obj with theta and theta+delta on the same (sampled) dataset
+     * otherwise the loss will be completely different.
      *)
      let b = samples n !batch_size in
      (* b |> List.iter (fun x -> print_int x); *)
      (* manual sample that works: [3; 2; 0; 1 ] *)
     expectant (trefs xs b) (trefs ys b) theta)
 
+(* from chap3.ml *)
+let line_xs = T [| S 2.0; S 1.0; S 4.0; S 3.0 |]
+let line_ys = T [| S 1.8; S 1.2; S 4.2; S 3.3 |]
+
 (* TODO: get S nan; S nan as result theta :(
  * TODO because of gradient_pad ???
  *)
 let res_frame_37 =
-  let obj = (sampling_obj (l2_loss line)
+  let obj = ((*sampling_obj*) (l2_loss line)
                line_xs line_ys) in
-  with_hyper revs 1000 (fun () ->
+  with_hyper revs 10(*1000*) (fun () ->
       with_hyper alpha 0.001 (fun () ->
          with_hyper batch_size 4 (fun () ->
-             gradient_descent obj
+             gradient_descent_v1 obj
             [S 0.; S 0.])))
 
 (* with bad batch, the gradient_pad may be big and we might

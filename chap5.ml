@@ -2,7 +2,7 @@
 let res_frame_6 =
   with_hyper revs 1000 (fun () ->
       with_hyper alpha 0.01 (fun () ->
-          gradient_descent ((l2_loss line) line_xs line_ys)
+          gradient_descent_v1 ((l2_loss line) line_xs line_ys)
             [S 0.; S 0.]))
 
 let quad_xs = T [| S (-1.0); S 0.0; S 1.0; S 2.0; S 3.0 |]
@@ -20,7 +20,7 @@ let res_frame_16 =
 let res_frame_22 =
   with_hyper revs 1000 (fun () ->
       with_hyper alpha 0.001 (fun () ->
-          gradient_descent ((l2_loss quad) quad_xs quad_ys)
+          gradient_descent_v1 ((l2_loss quad) quad_xs quad_ys)
             [S 0.; S 0.; S 0.]))
 
 let plane_xs =
@@ -52,7 +52,7 @@ let res_frame_27 =
 let res_frame_38 =
   with_hyper revs 10000 (fun () ->
       with_hyper alpha 0.001 (fun () ->
-          gradient_descent ((l2_loss plane) plane_xs plane_ys)
+          gradient_descent_v1 ((l2_loss plane) plane_xs plane_ys)
             [T [| S 0.; S 0.|]; S 0.]))
 
 let res_frame_40_my_value =

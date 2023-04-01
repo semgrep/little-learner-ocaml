@@ -8,6 +8,7 @@ open Common
 (* the stuff to learn, the "parameters" of the target_fn (e.g., line()),
  * often called 'theta' *)
 type parameters = t list
+[@@deriving show]
 
 (* e.g., line(), quad(), relu() *)
 type target_fn =
@@ -72,7 +73,10 @@ let l2_loss target (* f *) =
   fun theta (* tolearn *) ->
   let pred_ys (* predicted ys *) = target xs theta in
   (* extended operations! *)
-  sum (sqr (ys - pred_ys))
+  let res = sum (sqr (ys - pred_ys)) in
+  if !debug
+  then pr2 (spf "loss for %s: %s" (show_parameters theta) (Tensor.show res));
+  res
 
 (*****************************************************************************)
 (* Gradient descent v1 *)
@@ -91,11 +95,13 @@ let gradient_pad (obj : objective_fn) (theta : parameters) : parameters =
          List.rev theta_before @ [new_theta0] @ xs in
        let vnew = obj new_theta in
        let grad_theta0 = (vnew - vold) / (S 0.0001) in
-       if !debug
-       then pr2 (spf "grad_theta0: %s" (Tensor.show grad_theta0));
        grad_theta0 :: aux (theta0::theta_before) xs
   in
-  aux [] theta
+  let res = aux [] theta in
+  if !debug
+  then pr2 (spf "gradient_pad: [%s]" (show_parameters res));
+  res
+
 
 (* f = new theta compute = gradient *)
 let rec revise (f : parameters -> parameters) (revs : int) (theta : parameters) : parameters =
@@ -125,9 +131,6 @@ let rec sampled n i acc =
 
 let samples n s =
   sampled n s []
-
-let trefs t xs =
-  xs |> List.map (fun i -> tref t i) |> Array.of_list |> (fun arr -> T arr)
 
 let sampling_obj (expectant : expectant_fn) (xs : t) (ys : t) : objective_fn =
   let n = tlen xs in
