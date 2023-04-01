@@ -51,6 +51,9 @@ let alpha = ref 0.01
 
 let revs = ref 1000
 
+(* samples size *)
+let batch_size = ref 4
+
 (* =~ save_excursion *)
 let with_hyper aref newv f =
   let old = !aref in
@@ -103,3 +106,31 @@ let gradient_descent_v1 (obj : objective_fn) (theta_init : parameters) : paramet
       (gradient_pad obj big_theta)
   in
   revise f !revs theta_init
+
+(*****************************************************************************)
+(* Stochastic gradient *)
+(*****************************************************************************)
+
+let init () = Random.self_init ()
+
+let rec sampled n i acc =
+  if i = 0
+  then acc
+  else sampled n (Stdlib.(-) i 1) ((Random.int n)::acc)
+
+let samples n s =
+  sampled n s []
+
+let trefs t xs =
+  xs |> List.map (fun i -> tref t i) |> Array.of_list |> (fun arr -> T arr)
+
+let sampling_obj (expectant : expectant_fn) (xs : t) (ys : t) : objective_fn =
+  let n = tlen xs in
+  (fun theta ->
+    (* we must generate samples inside the closure, otherwise
+     * we would get the loss each time from the same batch
+     *)
+     let b = samples n !batch_size in
+     (* b |> List.iter (fun x -> print_int x); *)
+     (* manual sample that works: [3; 2; 0; 1 ] *)
+    expectant (trefs xs b) (trefs ys b) theta)

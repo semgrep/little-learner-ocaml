@@ -71,3 +71,12 @@ val revise : (parameters -> parameters) -> int -> parameters -> parameters
  * ex: gradient_descent ((l2_loss line) line_xs line_ys) [S 0.; S 0.]
  *)
 val gradient_descent_v1 : objective_fn -> parameters -> parameters
+
+(*****************************************************************************)
+(* Stochastic gradient descent *)
+(*****************************************************************************)
+
+(* initialize the random number generator with Random.self_init() *)
+val init: unit -> unit
+
+val sampling_obj : expectant_fn -> Tensor.t -> Tensor.t -> objective_fn
