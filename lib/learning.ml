@@ -14,8 +14,11 @@ type parameters = t list
 type target_fn =
   t (* input, the "arguments" of the target_fn *) -> parameters -> t (* output *)
 
+(* The first unit argument is a hack because of the way gradient_pad work.
+ * See the comment in sampling_obj() for more information.
+ *)
 type objective_fn =
-  parameters -> scalar (* the loss *)
+  unit -> parameters -> scalar (* the loss *)
 
 (* expect datasets as arguments *)
 type expectant_fn =
@@ -70,7 +73,7 @@ let with_hyper aref newv f =
 
 let l2_loss target (* f *) =
   fun xs (* input *) ys (* expected output *) (* xs and ys = dataset *) ->
-  fun theta (* tolearn *) ->
+  fun () theta (* tolearn *) ->
   let pred_ys (* predicted ys *) = target xs theta in
   (* extended operations! *)
   let res = sum (sqr (ys - pred_ys)) in
@@ -85,7 +88,9 @@ let l2_loss target (* f *) =
 (* TODO: define with better one using AutoGrad, see Appendix A *)
 (* define gradient myself, just enough to handle the example above *)
 let gradient_pad (obj : objective_fn) (theta : parameters) : parameters =
-  let vold = obj theta in
+  (* this is needed because of sampling_obj(). See the comment there. *)
+  let fobj = obj () in
+  let vold = fobj theta in
   let rec aux theta_before theta_rest =
     match theta_rest with
     | [] -> []
@@ -93,7 +98,7 @@ let gradient_pad (obj : objective_fn) (theta : parameters) : parameters =
        let new_theta0 = theta0 + (S 0.0001) in
        let new_theta =
          List.rev theta_before @ [new_theta0] @ xs in
-       let vnew = obj new_theta in
+       let vnew = fobj new_theta in
        let grad_theta0 = (vnew - vold) / (S 0.0001) in
        grad_theta0 :: aux (theta0::theta_before) xs
   in
@@ -134,11 +139,18 @@ let samples n s =
 
 let sampling_obj (expectant : expectant_fn) (xs : t) (ys : t) : objective_fn =
   let n = tlen xs in
-  (fun theta ->
-    (* we must generate samples inside the closure, otherwise
+  (fun () ->
+    (* We must generate samples inside the closure, otherwise
      * we would get the loss each time from the same batch
+     * But gradient_pad() calls the objective function [obj] a few times,
+     * and here we would call it each time with a different samples, which
+     * can't work! We must call obj with theta and theta+delta on the same
+     * (sampled) dataset otherwise the loss will be completely different.
+     * Which is why we introduce this extra unit argument, to give
+     * the chance to compule the samples here and to share it
+     * across multiple calls to the objective function.
      *)
      let b = samples n !batch_size in
-     (* b |> List.iter (fun x -> print_int x); *)
-     (* manual sample that works: [3; 2; 0; 1 ] *)
-    expectant (trefs xs b) (trefs ys b) theta)
+    
+    (fun theta ->
+      expectant (trefs xs b) (trefs ys b) () theta))

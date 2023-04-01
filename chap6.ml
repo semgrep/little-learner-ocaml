@@ -27,33 +27,28 @@ let res_frame_29 =
 
 let batch_size = ref 4
 
+(* now in learning.ml *)
 let sampling_obj (expectant : expectant_fn) (xs : t) (ys : t) : objective_fn =
   let n = tlen xs in
-  (fun theta ->
-    (* we must generate samples inside the closure, otherwise
-     * we would get the loss each time from the same batch
-     * TODO: the problem is that in gradient_pad(), we call the objective
-     * function [obj] a few times, and here we would call it each
-     * time with a different samples, which can't work! We must
-     * call obj with theta and theta+delta on the same (sampled) dataset
-     * otherwise the loss will be completely different.
-     *)
+  (* see comment in learning.ml about why we need this extra unit parameter *)
+  (fun () ->
      let b = samples n !batch_size in
-     (* b |> List.iter (fun x -> print_int x); *)
-     (* manual sample that works: [3; 2; 0; 1 ] *)
-    expectant (trefs xs b) (trefs ys b) theta)
+     (fun theta ->
+       expectant (trefs xs b) (trefs ys b) () theta))
 
 (* from chap3.ml *)
 let line_xs = T [| S 2.0; S 1.0; S 4.0; S 3.0 |]
 let line_ys = T [| S 1.8; S 1.2; S 4.2; S 3.3 |]
 
-(* TODO: get S nan; S nan as result theta :(
- * TODO because of gradient_pad ???
+(* bugfix: used to get S nan; S nan as result theta :(
+ * because of the way gradient_pad was written. Now with
+ * the extra unit argument and 'let fobj = obj ()' in
+ * gradient_pad this works better.
  *)
 let res_frame_37 =
-  let obj = ((*sampling_obj*) (l2_loss line)
+  let obj = (sampling_obj (l2_loss line)
                line_xs line_ys) in
-  with_hyper revs 10(*1000*) (fun () ->
+  with_hyper revs 1000 (fun () ->
       with_hyper alpha 0.001 (fun () ->
          with_hyper batch_size 4 (fun () ->
              gradient_descent_v1 obj
@@ -61,25 +56,36 @@ let res_frame_37 =
 
 (* with bad batch, the gradient_pad may be big and we might
  * diverge too fast, so better put more revisions and
- * a smaller alpha!
- * Not NaN anymore, but still bad
+ * a smaller alpha? no, not better actually.
  *)
-let res_frame_37_for_gradient_pad =
+let res_frame_37_different_hyperparam =
   let obj = (sampling_obj (l2_loss line)
                line_xs line_ys) in
   with_hyper revs 15000 (fun () ->
       with_hyper alpha 0.00001 (fun () ->
          with_hyper batch_size 4 (fun () ->
-             gradient_descent obj
+             gradient_descent_v1 obj
             [S 0.; S 0.])))
 
-(* TODO I also get nan :( *)
+(* from chap5.ml *)
+let plane_xs =
+  T [|
+      T [| S 1.0; S 2.05|];
+      T [| S 1.0; S 3.0|];
+      T [| S 2.0; S 2.0|];
+      T [| S 2.0; S 3.91|];
+      T [| S 3.0; S 6.13|];
+      T [| S 4.0; S 8.09|];
+    |]
+let plane_ys =
+  T [| S 13.99; S 15.99; S 18.0; S 22.4; S 30.2; S 37.94|]
+
 let res_frame_42 =
   let obj = (sampling_obj (l2_loss plane)
                plane_xs plane_ys) in
   with_hyper revs 15000 (fun () ->
       with_hyper alpha 0.001 (fun () ->
          with_hyper batch_size 4 (fun () ->
-             gradient_descent obj
+             gradient_descent_v1 obj
             [T [| S 0.; S 0.|]; S 0.])))
 

@@ -13,8 +13,11 @@ type target_fn =
   parameters (* the "parameters" *) ->
   Tensor.t (* output *)
 
+(* The first unit argument is a hack because of the way gradient_pad work.
+ * See the comment in sampling_obj() for more information.
+ *)
 type objective_fn =
-  parameters -> Tensor.scalar (* the loss *)
+  unit -> parameters -> Tensor.scalar (* the loss *)
 
 (* expect datasets as arguments. An example of an expectant_fn is
  * (l2_loss target): it returns a function that waits for its input and output
