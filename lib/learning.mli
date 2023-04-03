@@ -20,12 +20,12 @@ type objective_fn =
   unit -> parameters -> Tensor.scalar (* the loss *)
 
 (* expect datasets as arguments. An example of an expectant_fn is
- * (l2_loss target): it returns a function that waits for its input and output
- *  datasets and then return an objective_fn (which itself will wait for
+ * [l2_loss line]: it returns a function that waits for its input and output
+ *  datasets and then returns an objective_fn (which itself will wait for
  *  its parameters to finally return a scalar, the loss)
  *)
 type expectant_fn =
-  Tensor.t (* input dataset *) -> Tensor.t (* predicted output dataset *) ->
+  Tensor.t (* input dataset *) -> Tensor.t (* expected output dataset *) ->
   objective_fn
 
 val debug: bool ref
@@ -47,22 +47,23 @@ val plane: target_fn
 (* Hyperparameters *)
 (*****************************************************************************)
 
-(* learning rate *)
+(* learning rate: new_theta = old_theta - alpha x g (fradient) *)
 val alpha: float ref
 
-(* revisions *)
+(* revisions: revise f revs theta_init *)
 val revs: int ref
 
-(* samples size *)
+(* samples size: sampling_obj input_set !batch_size *)
 val batch_size : int ref
 
+(* usage: with_hyper alpha 0.01 (fun () -> ...). They can be nested *)
 val with_hyper : 'a ref -> 'a -> (unit -> 'b) -> 'b
                                                             
 (*****************************************************************************)
 (* Loss *)
 (*****************************************************************************)
 
-(* sum of sqr of differences (euclidian distance) *)
+(* sum of sqr of differences (Euclidian distance) *)
 val l2_loss: target_fn -> expectant_fn
 
 (*****************************************************************************)
@@ -76,7 +77,7 @@ val gradient_pad: objective_fn -> parameters -> parameters
 val revise : (parameters -> parameters) -> int -> parameters -> parameters
   
 (* optimization by gradient descent, continue to revise the parameters.
- * Internally rely on !alpha, !revs (and gradient_pad).
+ * Internally relies on !alpha, !revs (and gradient_pad).
  * ex: gradient_descent ((l2_loss line) line_xs line_ys) [S 0.; S 0.]
  *)
 val gradient_descent_v1 : objective_fn -> parameters -> parameters
