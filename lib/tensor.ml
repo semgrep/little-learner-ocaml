@@ -187,7 +187,7 @@ let flatten_2 t2 =
 (* Extended operators  *)
 (*****************************************************************************)
 
-let _zeroes =
+let zeroes =
   ext1 (fun _ -> S 0.) 0
 
 let sum =

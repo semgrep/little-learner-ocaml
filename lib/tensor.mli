@@ -56,3 +56,8 @@ val sqrt: t -> t
 val sqr: t -> t
 
 val sum: t -> scalar
+
+(* returns a tensor with 0 everywhere of the same shape than t.
+ * Useful for velocity gradient.
+ *)
+val zeroes: t -> t

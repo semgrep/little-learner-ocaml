@@ -69,9 +69,17 @@ val revs: int ref
 (* samples size: sampling_obj input_set !batch_size *)
 val batch_size : int ref
 
+(* boosting: for velocity/momentum gradient descent *)
+val mu: float ref
+
 (* usage: with_hyper alpha 0.01 (fun () -> ...). They can be nested *)
 val with_hyper : 'a ref -> 'a -> (unit -> 'b) -> 'b
-                                                            
+
+(*****************************************************************************)
+(* Parameters *)
+(*****************************************************************************)
+val lref : parameters -> int -> parameter
+
 (*****************************************************************************)
 (* Loss *)
 (*****************************************************************************)
@@ -108,9 +116,10 @@ val samples: int -> int -> int list
 val sampling_obj : expectant_fn -> Tensor.t -> Tensor.t -> objective_fn
 
 (*****************************************************************************)
-(* Gradient descent v2 *)
+(* (General) Gradient descent v2 and v3 *)
 (*****************************************************************************)
 
+(* useful for the chapX.ml, but you should use _v3 *)
 val gradient_descent_v2 :
   (parameter -> 'a) * ('a -> parameter) * ('a -> parameter -> 'a) ->
   objective_fn -> parameters -> parameters
@@ -118,3 +127,14 @@ val gradient_descent_v2 :
 (* pad's typed extension *)
 val gradient_descent_v3 :
   'a ate -> objective_fn -> parameters -> parameters
+
+(* this one is pretty general and can be reused *)
+val deflate: 'a accompanied_param -> parameter
+
+(*****************************************************************************)
+(* Special gradient descent *)
+(*****************************************************************************)
+
+(* a.k.a momentum gradient descent *)
+val velocity_gradient_descent: objective_fn -> parameters -> parameters
+

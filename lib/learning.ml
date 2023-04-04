@@ -74,6 +74,9 @@ let revs = ref 1000
 (* samples size *)
 let batch_size = ref 4
 
+(* boosting *)
+let mu = ref 0.9
+
 (* =~ save_excursion *)
 let with_hyper aref newv f =
   let old = !aref in
@@ -194,3 +197,21 @@ let gradient_descent_v3
       (gradient_pad obj (List.map ate.deflate big_theta))
   in
   List.map ate.deflate (revise f !revs (List.map ate.inflate theta_init))
+
+let deflate big_p =
+  big_p.p
+
+  
+(*****************************************************************************)
+(* Special gradient descent *)
+(*****************************************************************************)
+
+let velocity_gradient_descent =
+  gradient_descent_v3 {
+      inflate = (fun p -> { p; x = zeroes p });
+      deflate;
+      update = (fun big_p g ->
+        let v = (S !mu) * big_p.x  - (S !alpha) * g in
+        let p = big_p.p + v in
+        {p; x = v })
+    }
