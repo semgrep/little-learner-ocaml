@@ -1,5 +1,5 @@
 
-(* boosting *)
+(* momentum boost *)
 let mu = ref 0.9
 
 let velocity_i p =

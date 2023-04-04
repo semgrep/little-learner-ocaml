@@ -77,6 +77,9 @@ let batch_size = ref 4
 (* boosting *)
 let mu = ref 0.9
 
+(* smooth decay *)
+let beta = ref 0.9
+
 (* =~ save_excursion *)
 let with_hyper aref newv f =
   let old = !aref in
@@ -206,12 +209,56 @@ let deflate big_p =
 (* Special gradient descent *)
 (*****************************************************************************)
 
+(* a.k.a momentum gradient descent (use boosting) *)
 let velocity_gradient_descent =
   gradient_descent_v3 {
+      (* x = previous value of the velocity =~ - (alpha x g)+ boost, initiliazed to 0 *)
       inflate = (fun p -> { p; x = zeroes p });
       deflate;
       update = (fun big_p g ->
         let v = (S !mu) * big_p.x  - (S !alpha) * g in
         let p = big_p.p + v in
         {p; x = v })
+    }
+
+let smooth decay_rate average g =
+  (S decay_rate) * average + (S (1.0 -. decay_rate)) * g
+
+(* stabilizer for modifier 1 / G *)
+let epsilon = 1e-08
+
+(* adaptive descent 1, RMSProp = Root Mean Square, because we use the Mean
+ *  (the smoothed historical average), of the Squares and then takes
+ * its square Root. Prop stands for backPropagation.
+ * Adaptive because as we descent we adapt the learning rate with
+ * a modifier which grows inversely proportional to the gradient
+ * (as the gradient gets smaller, alpha(hat) gets bigger to "compensate".
+ *)
+let rms_gradient_descent =
+  gradient_descent_v3 {
+      (* x = historical accumulated average (squared) *)
+      inflate = (fun p -> { p; x = zeroes p } );
+      deflate;
+      update = (fun {p = old_p; x = old_r} g ->
+         let r = smooth !beta old_r (sqr g) in
+         let alpha_hat = (S !alpha) / (sqrt r + (S epsilon)) in
+         let p = old_p - alpha_hat * g in
+         { p; x = r }
+      )
+    }
+
+(* adaptive descent 2, AdaM for Adaptive Momentum estimation *)
+let adam_gradient_descent =
+  gradient_descent_v3 {
+      (* x = (historical average for XXX x historical avererage for YYY)  *)
+      inflate = (fun p -> { p; x = (zeroes p, zeroes p) });
+      deflate;
+      update = (fun { p = old_p; x = (old_v, old_r) } g ->
+        (* from rms *)
+        let r = smooth !beta old_r (sqr g) in
+        let alpha_hat = (S !alpha) / (sqrt r + (S epsilon)) in
+        (* from velocity, could be called g_hat *)
+        let v = smooth !mu old_v g in
+        { p = old_p - alpha_hat * v; x = (v, r) }
+      )
     }
