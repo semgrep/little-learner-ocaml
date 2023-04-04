@@ -4,7 +4,9 @@
 
 (* the stuff we want to learn, the "parameters" of a target_fn (e.g., line()),
  * often called 'theta' *)
-type parameters = Tensor.t list
+type parameters = parameter list
+(* a parameter is a tensor *)
+and parameter = Tensor.t
 [@@deriving show]
 
 (* e.g., line(), quad() *)
@@ -29,6 +31,17 @@ type expectant_fn =
   objective_fn
 
 val debug: bool ref
+
+type 'a accompanied_param =
+  { p : parameter;
+    x : 'a; (* extra info, "accompaniment" *)
+  }
+
+type 'a ate = {
+    inflate: parameter -> 'a accompanied_param;
+    deflate: 'a accompanied_param -> parameter;
+    update: 'a accompanied_param -> parameter (* gradient *) -> 'a accompanied_param;
+}
 
 (*****************************************************************************)
 (* Target functions *)
@@ -74,7 +87,7 @@ val l2_loss: target_fn -> expectant_fn
 val gradient_pad: objective_fn -> parameters -> parameters
 
 (* internal *)
-val revise : (parameters -> parameters) -> int -> parameters -> parameters
+val revise: ('parameters -> 'parameters) -> int -> 'parameters -> 'parameters
   
 (* optimization by gradient descent, continue to revise the parameters.
  * Internally relies on !alpha, !revs (and gradient_pad).
@@ -93,3 +106,15 @@ val init: unit -> unit
 val samples: int -> int -> int list
 
 val sampling_obj : expectant_fn -> Tensor.t -> Tensor.t -> objective_fn
+
+(*****************************************************************************)
+(* Gradient descent v2 *)
+(*****************************************************************************)
+
+val gradient_descent_v2 :
+  (parameter -> 'a) * ('a -> parameter) * ('a -> parameter -> 'a) ->
+  objective_fn -> parameters -> parameters
+
+(* pad's typed extension *)
+val gradient_descent_v3 :
+  'a ate -> objective_fn -> parameters -> parameters

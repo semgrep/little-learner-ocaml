@@ -5,9 +5,11 @@ open Common
 (* Types *)
 (*****************************************************************************)
 
-(* the stuff to learn, the "parameters" of the target_fn (e.g., line()),
+(* the stuff we want to learn, the "parameters" of a target_fn (e.g., line()),
  * often called 'theta' *)
-type parameters = t list
+type parameters = parameter list
+(* a parameter is a tensor *)
+and parameter = Tensor.t
 [@@deriving show]
 
 (* e.g., line(), quad(), relu() *)
@@ -26,6 +28,17 @@ type expectant_fn =
   objective_fn
 
 let debug = ref true
+
+type 'a accompanied_param =
+  { p : parameter;
+    x : 'a; (* extra info, "accompaniment" *)
+  }
+
+type 'a ate = {
+    inflate: parameter -> 'a accompanied_param;
+    deflate: 'a accompanied_param -> parameter;
+    update: 'a accompanied_param -> parameter (* gradient *) -> 'a accompanied_param;
+}
 
 (*****************************************************************************)
 (* Target functions *)
@@ -108,18 +121,21 @@ let gradient_pad (obj : objective_fn) (theta : parameters) : parameters =
   res
 
 
-(* f = new theta compute = gradient *)
-let rec revise (f : parameters -> parameters) (revs : int) (theta : parameters) : parameters =
+(* f = new theta compute = gradient.
+ * use 'parameters instead of parameters so that it can be used also in
+ * gradient_descent_v2 which use accompanied parameters
+ *)
+let rec revise (f : 'parameters -> 'parameters) (revs : int) (theta : 'parameters) : 'parameters =
   if revs =|= 0
   then theta
   else revise f (Stdlib.(-) revs 1) (f theta)
 
 let gradient_descent_v1 (obj : objective_fn) (theta_init : parameters) : parameters =
-  let f big_theta =
+  let f theta =
     List.map2
       (fun p g -> p - (S !alpha) * g)
-      big_theta
-      (gradient_pad obj big_theta)
+      theta
+      (gradient_pad obj theta)
   in
   revise f !revs theta_init
 
@@ -154,3 +170,27 @@ let sampling_obj (expectant : expectant_fn) (xs : t) (ys : t) : objective_fn =
     
     (fun theta ->
       expectant (trefs xs b) (trefs ys b) () theta))
+
+(*****************************************************************************)
+(* Gradient descent v2 and v3 (with the -ate) *)
+(*****************************************************************************)
+
+let gradient_descent_v2
+    (inflate, deflate, update)
+      (obj : objective_fn) (theta_init : parameters) : parameters =
+  let f big_theta =
+      List.map2 update
+      big_theta
+      (gradient_pad obj (List.map deflate big_theta))
+  in
+  List.map deflate (revise f !revs (List.map inflate theta_init))
+
+let gradient_descent_v3
+      (ate: 'a ate)
+      (obj : objective_fn) (theta_init : parameters) : parameters =
+  let f big_theta =
+      List.map2 ate.update
+      big_theta
+      (gradient_pad obj (List.map ate.deflate big_theta))
+  in
+  List.map ate.deflate (revise f !revs (List.map ate.inflate theta_init))
