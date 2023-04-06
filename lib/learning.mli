@@ -57,6 +57,8 @@ val quad: target_fn
 (* f(x) = a o x + b (o = dotproduct) *)
 val plane: target_fn
 
+(* See also Nn.neuron with relu() for another example of target function *)
+
 (*****************************************************************************)
 (* Hyperparameters *)
 (*****************************************************************************)
